@@ -1,0 +1,63 @@
+Jody stuff
+
+Global thing:
+    recognizing where we're at: beginning of week 7.            4 weaks as a team.
+
+    something about 12 hours a week.
+    Should have done 48 person hours (per person)
+    
+    200 person hours per team?
+        A lot of it could have been team building or figuring out what the heck we are doing hours.
+        What are our teams able to accomplish starting from 0.
+    
+    We should be getting better at estimating and figuring out what realistic expectations are.
+    As we go through more iterations we should be getting better at estimating and even producing.
+    
+    "Working Agile" -> expected to be changing process.
+    
+    
+    Have not published date for discussion of book. Likely week 9 or 10.
+    
+    "HOLY CRAP IT'S WEEK 7" *Waves arms*
+    
+Recognize person hours and expected person hours
+    About being able to note only contribute but get a metric on contributions.
+    Difference between story point and person hours. -> person hours vary by person. person_hours(person) := RandomInt()
+    
+    
+    
+In (non)unique situation of being in a university course and doing software engineering.
+Typically in a company or some other organization while doing sw engineering.
+    It can get confusing for all of us to know what we are doing. (Lol.)
+    
+    Not always rewarded for producing product???
+    
+    We are presumably gaining experience with agile.( :thinking:)
+    
+    Should be applying agile principles to develop software.
+    
+    "This course is wacko, a weird course we get it."
+    
+    What some groups were doing:
+        - Trying to apply sw development methodology to this course's objectives. Not applicable really.
+        
+        - Course: Demonstration and learning => diploma.
+        
+    Have separated people that care about the product from people who care about the learning.
+    Confusion:
+        When talking about user stories:
+            - All stakeholders should be represented
+            - Should reflect all stakeholders and be about the product.
+            - Many groups had presentation with presentation x being a user story in the product backlog.
+                - Presentation is NOT A USER STORY: It's overhead, nothing to do with the product.
+                
+    When planning a product oriented sprint:
+        - Things that are just part of the process or the environment are not part of the product backlog.
+                Not about developing the software per se, just about enabling us to develop it.
+        
+        
+Took 20 mins.
+"These are the points I had to talk to each of 5 teams this morning"
+Thinks he has contributed to this
+User stories should reflect all stakeholders needs, but have to be about the product.
+
