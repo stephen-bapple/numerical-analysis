@@ -4,7 +4,7 @@ Numerical DE Solvers
 Author: Stephen Bapple
 '''
 
-from numpy import exp, arange
+from numpy import exp, arange, zeros
 from matplotlib import pyplot
 
 
@@ -24,8 +24,6 @@ def euler(f, h, y0, t):
     
     # Check if user passed in a callable function.
     # If so, try to extract a list of evals from it.
-    if callable(f):
-    
     w = [y0]
     for i in range(1, len(t)):
         w.append(w[i - 1] + h * f(t[i - 1], w[i - 1]))
@@ -33,23 +31,49 @@ def euler(f, h, y0, t):
     return w
 
 
-def back_euler(f, df, ddf, h, y0, t, tolerance=0.0001):
+def back_euler(f, df, ddf, h, y0, t, tolerance=0.01):
     '''
-    Todo: Add doc.
-    '''
-    def newtons(x0, w):
-        x = x0 - (f(x0) * fp(x0)) / (fp(x0)**2 - f(x0) * ddf(x0))
-        while abs(x - x0) > tolerance:
-            x0 = x
-            x = x - (f(x) * fp(x)) / (fp(x)**2 - f(x) * ddf(x))
-
-        return x
+    Implementation of backwards Euler's method.
     
-    w = [y0]
-    for i, t in enumerate(t):
-        z = newtons(w[i], w[i])
-        w.append(w[i], + h * f(t[], z))
+    Args:
+        f: The differential equation.
+        df: The derivative of the differential equation.
+        ddf: The second derivatie of the differential equation.
+        h: The step size.
+        y0: The initial y value.
+        t: The list of t values.
+        tolerance: The optional tolerance to use for Newton's method.
+        
+    Returns:
+        list: The list of w (approximate y) values.
+    '''
+    #def newtons(x0, w):
+    #    x = x0 - (f(0, x0) * df(0, x0)) / (df(0, x0)**2 - f(0, x0) * ddf(0, x0))
+    #    while abs(x - x0) > tolerance:
+    #        x0 = x
+    #        x = x - (f(0, x) * df(0, x)) / (df(0, x)**2 - f(0, x) * ddf(0, x))
+    #    return x
+    def newtons(x0, w, h, tol):
+        def g(x, w, h):
+            return x - (w + h * f(0, x))
+        def gp(x, h):
+            return 1 - h * df(0, x)
+            
+        x = x0 - g(x0,w,h) / gp(x0,h)
+        print(x-x0)
+        while abs(x-x0) > tol:
+        #for _ in range(40):
+            print(abs(x-x0))
+            x0=x
+            x = x0 - g(x0, w, h) / gp(x0, h)
+        return x
 
+    w = [y0]
+    for i in range(len(t) - 1):
+        z = newtons(w[i], w[i], h, tolerance)
+        w.append(w[i] + h * f(t[i + 1], z))
+    
+    return w
         
 def trapezoid(f, h, y0, t):
     '''
@@ -90,22 +114,128 @@ def rk4(f, h, y0, t):
     return w
     
     
-def ab4(f, h, w, t):
+def ab4(f, h, y0, t):
     '''
     Adams-Bashforth method.
     This method requires 
     TODO: finish docstring.
     '''
+    w = zeros((len(t)))
+    w[0:4] = rk4(f, h, y0, t[0:4])
     for i in range(3, len(t) - 1):
-        w.append(w[i] + (h / 24) * (55 * f(t[i])\
-             - 59 * f(t[i - 1]) + 37 * f(t[i - 2])\
-             - 9 * f(t[i - 3])))
+        w[i + 1] = w[i] + (h / 24) * (55 * f(t[i], w[i])\
+             - 59 * f(t[i - 1], w[i - 1]) + 37 * f(t[i - 2], w[i - 2])\
+             - 9 * f(t[i - 3], w[i - 3]))
+    #print(w)
     return w
 
     
-def am3():
-    '''
-    Adams-Moulton method.
-    TODO: add docstring
-    '''
-    pass
+def predictor_corrector4(f, h, y0, t):
+    ## Step methods to use later.
+    def am3_step(f, t, w, h):
+        return w[2] + (h / 24) * (9 * f(t[3], w[3])\
+                    + 19 * f(t[2], w[2])\
+                    - 5 * f(t[1], w[1])\
+                    + f(t[0], w[0]))
+
+    def ab4_step(f, t, w, h):
+        return w[3] + (h / 24) * (55 * f(t[3], w[3])\
+                    - 59 * f(t[2], w[2])\
+                    + 37 * f(t[1], w[1])\
+                    - 9 * f(t[0], w[0]))
+    w = zeros((len(t)))
+    
+    ## Use runge-kutta to obtain initial values.
+    w[0:4] = rk4(f, h, y0, t[0:4])
+    
+    #print(len(t[0:4]))
+
+    for i in range(3, len(t) - 1):
+        w[i + 1] = ab4_step(f, t[i - 3:i + 1], w[i - 3:i + 1], h) # predictor
+        w[i + 1] = am3_step(f, t[i - 2:i + 2], w[i - 2:i + 2], h) # corrector
+        
+    #print('returning')
+    #print(w)
+    return w
+
+
+def pco4(f, h, y0, t):
+    ## Step methods to use later.
+    def am3_step(f, t, w, h):
+        return w[2] + (9 * f(t[3], w[3])\
+                    + 19 * f(t[2], w[2])\
+                    - 5 * f(t[1], w[1])\
+                    + f(t[0], w[0])) * (h / 24)
+
+    def ab4_step(f, t, w, h):
+        return w[3] + (55 * f(t[3], w[3])\
+                    - 59 * f(t[2], w[2])\
+                    + 37 * f(t[1], w[1])\
+                    - 9 * f(t[0], w[0])) * (h/ 24)
+    w = zeros((len(t)))
+    
+    ## Use runge-kutta to obtain initial values.
+    w[0:4] = rk4(f, h, y0, t[0:4])
+    
+    #print(len(t[0:4]))
+
+    for i in range(3, len(t) - 1):
+        w[i + 1] = ab4_step(f, t[i - 3:i + 1], w[i - 3:i + 1], h) # predictor
+        w[i + 1] = am3_step(f, t[i - 2:i + 2], w[i - 2:i + 2], h) # corrector
+        
+    return w
+    
+def pc2(f, h, y0, t):
+    ## Step methods to use later.
+    def ab2_step(f, t, w, h):
+        return w[1] + (h / 2) * (3 * f(t[1], w[1]) - f(t[0], w[0]))
+
+    def am2_step(f, t, w, h):
+        return w[0] + (h / 2) * (f(t[1], w[1]) - f(t[0], w[0]))
+        
+        
+    w = zeros((len(t)))
+    
+    # 2 stage midpoint method.
+    def mp2(f, h, y0, t):
+        w = [y0]
+        for i in range(0, len(t) - 1):
+            s1 = w[i] + (h / 2) * f(t[i], w[i])
+            s2 = f(t[i] + (h / 2), s1)
+            w.append(w[i] +  h * s2)
+        
+        return w
+    ## Use midpoint method to obtain initial values.
+    w[0:2] = mp2(f, h, y0, t[0:2])
+    
+    #print(len(t[0:4]))
+
+    for i in range(2, len(t) - 1):
+        w[i + 1] = ab2_step(f, t[i - 1:i + 1], w[i - 1:i + 1], h) # predictor
+        w[i + 1] = am2_step(f, t[i:i + 2], w[i:i + 2], h) # corrector
+        
+    #print('returning')
+    #print(w)
+    return w
+
+
+
+def rk2(f, h, y0, t):
+    w = [y0]
+    for i in range(0, len(t) - 1):
+        s1 = w[i] + (h / 2) * f(t[i], w[i])
+        s2 = f(t[i] + (h / 2), s1)
+        w.append(w[i] +  h * s2)
+        
+    return w
+
+'''
+Variant of trapezoid method. Don't use.
+def pc(f, h, y0, t):
+    w = [y0]
+    for i in range(0, len(t) - 1):
+        w.append(w[i] + h * f(t[i], w[i]))
+        w[i + 1] = w[i] + (h / 2) * (f(t[i], w[i]) + f(t[i + 1], w[i + 1]))
+        
+    return w
+'''
