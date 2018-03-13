@@ -15,8 +15,8 @@ import solvers
 #
 ################################################################################
 
-# Global constants
-p0 = 0.1
+# To use when saving figures
+fig_number = 1
 
 # Define the function
 def f(t, p):
@@ -34,6 +34,7 @@ def df(t, p):
 
 
 # Second derivative of the function
+# Not used currently.
 def ddf(t, p):
     return -20
 
@@ -41,35 +42,52 @@ def ddf(t, p):
 # Compare the convergence of a solver with different step sizes against
 # the analytical solution.
 def compare_convergence(solver, h_set, num_iterations, solution, title='???'):
+    global fig_number
     ## Set up array of all solved values.
     w_set = np.zeros((len(h_set), num_iterations))
     
     ## Plot the iterations for each step size.
     fig, ax = plt.subplots(len(h_set) + 1, sharex=True, sharey=True)
+    
     for i, h in enumerate(h_set):
         t = [h * i for i in range(num_iterations)]
         w_set[i, :] = solver(f, h, p0, t)
-        ax[i].plot(t, w_set[i, :], label='h = %.2f' % h)
+        ax[i].plot(t, w_set[i, :], label='h = %.2f' % h, color='white')
         ax[i].legend(loc='lower right')
 
     ## Plot true solution. 
     # 500 points randomly chosen for smoothness.
     t = np.linspace(0, num_iterations * h_set[-1], 500)
-    ax[-1].plot(t, F(t), label='True solution')
+    ax[-1].plot(t, F(t), label='True solution', color='white')
     
     # Put labels in the correct places.
-    ax[0].set_title("Convergence of " + title + " by step size")
-    ax[-1].set_xlabel('time')
-    ax[(len(h_set) + 1) // 2].set_ylabel(' p ')
+    ax[0].set_title("Convergence of " + title + " by step size", color='white')
+    ax[-1].set_xlabel('time', color='white')
+    ax[(len(h_set) + 1) // 2].set_ylabel(' p ', color='white')
     ax[-1].legend(loc='lower right')
     
+    # Black background.
+    fig.set_facecolor('#000000FF') # Black background
+    
+    # Change all colors to black/white.
+    for a in ax:
+        a.set_facecolor('#000000FF') # Black background
+        a.xaxis.set_tick_params(color='white', labelcolor='white')
+        a.yaxis.set_tick_params(color='white', labelcolor='white')
+        for spine in a.spines.values():
+            spine.set_color('white')
+
     # Smoosh all graphs together
     fig.subplots_adjust(hspace=0)
     plt.setp([a.get_xticklabels() for a in fig.axes[:-1]], visible=False)
-    
+        
+    fig.savefig('Figure_%d' % fig_number, transparent=True)
+    fig_number += 1
     plt.show()
-    
+
+
 def bifurcation_plot(solver, h_set, num_iterations=230, depth=30, title='???'):
+    global fig_number
     # Prepare the 2d array of solved points.
     w_set = np.zeros((len(h_set), depth))
 
@@ -83,57 +101,44 @@ def bifurcation_plot(solver, h_set, num_iterations=230, depth=30, title='???'):
     fig, ax = plt.subplots()
     for i in range(depth):
         ax.plot(h_set, w_set[:, i], color='white', ls='', marker=',')
+    
+    # Clean us stylistically.
+    # Black background.
     ax.set_facecolor('#000000FF') # Black background
-    #fig.set_facecolor('#000000FF')
-    ax.set_title("Bifurcation diagram for " + title)
-    ax.set_xlabel('h / step size')
-    ax.set_ylabel('approximation of y')
-    plt.show()
+    fig.set_facecolor('#000000FF') # Black background
+    # White text.
+    ax.set_title("Bifurcation diagram for " + title, color='white')
+    ax.set_xlabel('h / step size', color='white')
+    ax.set_ylabel('approximation of p', color='white')
+    ax.xaxis.set_tick_params(color='white', labelcolor='white')
+    ax.yaxis.set_tick_params(color='white', labelcolor='white')
+    for spine in ax.spines.values():
+        spine.set_color('white')
 
-
-### Plot the bifurcation diagram to show devolution into chaos.
-def srk2():
-    #h_set = np.linspace(0.18, 0.3, 10000)
-    width = 30
-    #h_set = np.arange(0.0001, 0.17720, 0.00001)
-    #h_set = np.arange(0.0001, 0.1767, 0.00001)
-    h_set = np.arange(0.0001, 0.4, 0.00001)
-    w_set = np.zeros((len(h_set), width))
-
-    # Run method to obtain y value method should converge to for each h value
-    # using last 30 results to show any oscillation. 
-    for i, h in enumerate(h_set):
-        t = [h * j for j in range(231)]
-        w_set[i, :] = rk2(f, h, p0, t)[231 - width:]
-
-    # Plot h vs y
-    fig, ax = plt.subplots()
-    colors = ['white', 'red', 'blue']
-    for i in range(width):
-        ax.plot(h_set, w_set[:, i], color=colors[0], ls='', marker=',')
-    ax.set_facecolor('#000000FF')
-    #fig.set_facecolor('#000000FF')
+    fig.savefig('Figure_%d' % fig_number, transparent=True)
+    fig_number += 1
     plt.show()
 
 
 ### Main script.    
 if __name__ == '__main__':
-    granularity = 0.0001
+    p0 = 0.1
+    granularity = 0.00001
+
     # Euler's
-    
     print("Euler's method.")
-    ##compare_convergence(solvers.euler, [0.18, 0.23, 0.25, 0.3], 40, F,
-    ##                    "Euler's Method")
+    compare_convergence(solvers.euler, [0.18, 0.23, 0.25, 0.3], 40, F,
+                        "Euler's Method")
     bifurcation_plot(solvers.euler, np.arange(0.18, 0.3, granularity),
                      title="Euler's Method")
-    
+
     # Runge-Kutta 4 stage
     print("Runge-Kutta 4th Order")
-    ##compare_convergence(solvers.rk4, [0.18, 0.23, 0.25, 0.3, 0.325, 0.35, 0.4],
-    ##                    60, F, 'Runge-Kutta 4th order')
+    compare_convergence(solvers.rk4, [0.18, 0.23, 0.25, 0.3, 0.325, 0.35, 0.4],
+                        60, F, 'Runge-Kutta 4th order')
     bifurcation_plot(solvers.rk4, np.arange(0.18, 0.4, granularity),
                      title='Runge-Kutta 4th order')
-    '''
+
     # Backwards Eulers
         # Note: this fails because Newton's method does not converge.
     #compare_convergence(back_euler, [0.18, 0.23, 0.25, 0.3], 40, F,
@@ -147,10 +152,9 @@ if __name__ == '__main__':
                      title='predictor/corrector 4th order')
 
     # Adams Bashforth
-    # 90 might be unnecessary... CHECK?
     print("Adams-Bashforth.")
     bifurcation_plot(solvers.ab4, np.arange(0.01, 0.06940, granularity),
-                     231, 90, title='Adams-Bashforth')
+                     title='Adams-Bashforth')
 
     # Mathematical rearranging of pc4 ab/am
     print("Rearranged pc4.")
@@ -161,8 +165,8 @@ if __name__ == '__main__':
     print("2nd order predictor/corrector.")
     bifurcation_plot(solvers.pc2, np.arange(0.01, 0.02, granularity),
                      title='2nd order predictor/corrector')
-    '''
+
     # Trapezoid
     print("Trapezoid.")
-    bifurcation_plot(solvers.trapezoid, np.arange(0.18, 0.3404, granularity),
+    bifurcation_plot(solvers.trapezoid, np.arange(0.18, 0.34037, granularity),
                      title='trapezoid method')
