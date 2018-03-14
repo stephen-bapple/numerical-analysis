@@ -10,7 +10,8 @@ def problem():
     #
     # Solving problem Ut = D * Uxx
     # With 
-    #
+    # f(x, 0) = sin(2 pi x)^2
+    #    
     # D = 1
     # Using Forward Temporal spatial
 
