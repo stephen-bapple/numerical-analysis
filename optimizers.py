@@ -1,5 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
 
 ################################################################################
 # Minimizers                                                                   #
@@ -31,7 +33,7 @@ def golden_section_search(f, a, b, tolerance=0.5e-08):
     return (a + b) / 2.0
 
 
-def multivariate_newtons(J, H, W):
+def multivariate_newtons(J, H, W, tolerance=0.5e-8):
     s = np.linalg.solve(np.multiply(-1, H(W[0],W[1])), J(W[0], W[1]))
     while np.linalg.norm(s) > tolerance:
         W += s
@@ -40,7 +42,7 @@ def multivariate_newtons(J, H, W):
     return W
 
 
-def multivariate_newtons_multi_guess(J, H, starting_guesses):
+def multivariate_newtons_multi_guess(J, H, starting_guesses, tolerance=0.5e-8):
     mins = []
     for W in starting_guesses:
         s = np.linalg.solve(np.multiply(-1, H(W[0],W[1])), J(W[0], W[1]))
@@ -91,7 +93,7 @@ def plot3d_with_mins(F, x_range=[-2, 2], y_range=[-2, 2], mins=[]):
             
     X, Y = np.meshgrid(x, y)
 
-    fig = pyplot.figure()
+    fig = plt.figure()
     ax1 = fig.add_subplot(111, projection='3d')
     p1 = ax1.plot_surface(X, Y, Z, cmap=cm.jet, alpha=0.9)
 
@@ -101,7 +103,7 @@ def plot3d_with_mins(F, x_range=[-2, 2], y_range=[-2, 2], mins=[]):
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
     ax1.set_zlabel('z')
-    pyplot.show()
+    plt.show()
 
 
 ################################################################################
@@ -109,14 +111,46 @@ def plot3d_with_mins(F, x_range=[-2, 2], y_range=[-2, 2], mins=[]):
 ################################################################################
 
 if __name__ == '__main__':
+    
     # Demo golden section search:
-    def f(x):
-        return -1 * np.sin(np.pi * x)
-    def g(x):
-        return x**4 + 3 * x**3 + 9 * x
-    a, b = -0.35, 1.3
-    min = golden_section_search(f, a, b, 0.5e-10)
+    ############################################################################
+    def demo_gss():
+        def f(x):
+            return -1 * np.sin(np.pi * x)
+        def g(x):
+            return x**4 + 3 * x**3 + 9 * x
+        a, b = -0.35, 1.3
+        min = golden_section_search(f, a, b, 0.5e-10)
+        
+        print("The minimum is: %.10f" % min)
+        
+        plot2d_with_mins(f, a, b, [min])
+    #demo_gss()
     
-    print("The minimum is: %.10f" % min)
+    # Demo multivariate Newtons
+    ############################################################################
+    def demo_mv_newton():
+        def F(x, y):
+            return x**4 + y**4 + 2 * x**2 * y**2 + 6 * x * y - 4 * x - 4 * y + 1
+
+        # Jacobian
+        def J(x, y):
+            return [4 * x**3 + 4 * x * y**2 + 6 * y - 4, 
+                    4 * y**3 + 4 * x**2 * y + 6 * x - 4]
+
+        # Hessian
+        def H(x, y):
+            return [[12*x**2 + 4 * y**2, 8*x*y + 6],
+                    [8 * x * y + 6, 12*y**2 + 4*x**2]]
+        print('Plotting both minimums...')
+        starting_guesses = [[-1, 1], [1, -1]]
+        mins = multivariate_newtons_multi_guess(J, H, starting_guesses)
+        plot3d_with_mins(F, mins=mins)
+        
+        print('Plotting only one minimum...')
+        starting_guess = [-1, 1]
+        min = multivariate_newtons(J, H, starting_guess)
+        plot3d_with_mins(F, mins=[min])
+    #demo_mv_newton()
     
-    plot2d_min(f, a, b, min)
+    
