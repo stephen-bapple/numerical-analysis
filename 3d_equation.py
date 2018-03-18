@@ -32,7 +32,7 @@ def plot():
 
     fig = pyplot.figure()
     ax1 = fig.add_subplot(111, projection='3d')
-    p1 = ax1.plot_surface(X,Y,Z, cmap=cm.jet)
+    p1 = ax1.plot_surface(X, Y, Z, cmap=cm.jet)
     pyplot.xlabel('x')
     pyplot.ylabel('y')
     pyplot.show()
