@@ -54,7 +54,28 @@ def multivariate_newtons_multi_guess(J, H, starting_guesses, tolerance=0.5e-8):
 
     return mins
 
+# Weakest line search with backtracking.
+# Type of steepest_descent.
+def weakest_line(F, J, x0, s_max=0.5, delta=1.0e-03, tolerance=0.5e-08):
+    x = x0
+    s = s_max
+    v = np.multiply(-1, J(x[0], x[1]))
+    
+    while np.linalg.norm(np.multiply(s, v), 2) < tolerance:
+        
+        # No sense recomputing these every time...
+        fx = F(x[0], x[1])
+        jTv = np.multiply(np.transpose(J(x[0], x[1])), v)
+        
+        while F(x + np.multiply(s, v)) <= fx + delta * s * jTv:
+            s /= 2.0
 
+        x += np.multiply(s, v)
+        v = np.multiply(-1, J(x[0], x[1]))
+        
+    return x
+
+    
 ################################################################################
 # Visualizers                                                                  #
 ################################################################################
@@ -153,4 +174,21 @@ if __name__ == '__main__':
         plot3d_with_mins(F, mins=[min])
     #demo_mv_newton()
     
+    def demo_weakest_line():
+        def F(x, y):
+            return x**4 + y**4 + 2 * x**2 * y**2 + 6 * x * y - 4 * x - 4 * y + 1
+
+        # Jacobian
+        def J(x, y):
+            return [4 * x**3 + 4 * x * y**2 + 6 * y - 4, 
+                    4 * y**3 + 4 * x**2 * y + 6 * x - 4]
+
+        x0 = [-1, 1]
+        min = weakest_line(F, J, x0)
+        plot3d_with_mins(F, mins=[min])
+    demo_weakest_linet()
     
+    def demo_weakest_line_gss():
+        pass
+    demo_weakest_line_gss()
+
