@@ -1,7 +1,9 @@
 '''
-Numerical DE Solvers
+Numerical Differential Equation Solvers
 
 Author: Stephen Bapple
+
+TODO: finish docstrings for all methods.
 '''
 
 from numpy import exp, arange, zeros
@@ -22,8 +24,6 @@ def euler(f, h, y0, t):
         list: The list of w (approximate y) values.
     '''
     
-    # Check if user passed in a callable function.
-    # If so, try to extract a list of evals from it.
     w = [y0]
     for i in range(1, len(t)):
         w.append(w[i - 1] + h * f(t[i - 1], w[i - 1]))
@@ -47,12 +47,6 @@ def back_euler(f, df, ddf, h, y0, t, tolerance=0.01):
     Returns:
         list: The list of w (approximate y) values.
     '''
-    #def newtons(x0, w):
-    #    x = x0 - (f(0, x0) * df(0, x0)) / (df(0, x0)**2 - f(0, x0) * ddf(0, x0))
-    #    while abs(x - x0) > tolerance:
-    #        x0 = x
-    #        x = x - (f(0, x) * df(0, x)) / (df(0, x)**2 - f(0, x) * ddf(0, x))
-    #    return x
     def newtons(x0, w, h, tol):
         def g(x, w, h):
             return x - (w + h * f(0, x))
@@ -62,7 +56,6 @@ def back_euler(f, df, ddf, h, y0, t, tolerance=0.01):
         x = x0 - g(x0,w,h) / gp(x0,h)
         print(x-x0)
         while abs(x-x0) > tol:
-        #for _ in range(40):
             print(abs(x-x0))
             x0=x
             x = x0 - g(x0, w, h) / gp(x0, h)
@@ -74,8 +67,9 @@ def back_euler(f, df, ddf, h, y0, t, tolerance=0.01):
         w.append(w[i] + h * f(t[i + 1], z))
     
     return w
-        
-def trapezoid(f, h, y0, t):
+
+
+def trapezoid_explicit(f, h, y0, t):
     '''
     Implementation of the Trapezoid Method.
 
@@ -147,15 +141,11 @@ def predictor_corrector4(f, h, y0, t):
     
     ## Use runge-kutta to obtain initial values.
     w[0:4] = rk4(f, h, y0, t[0:4])
-    
-    #print(len(t[0:4]))
 
     for i in range(3, len(t) - 1):
         w[i + 1] = ab4_step(f, t[i - 3:i + 1], w[i - 3:i + 1], h) # predictor
         w[i + 1] = am3_step(f, t[i - 2:i + 2], w[i - 2:i + 2], h) # corrector
-        
-    #print('returning')
-    #print(w)
+
     return w
 
 
@@ -177,8 +167,6 @@ def pco4(f, h, y0, t):
     ## Use runge-kutta to obtain initial values.
     w[0:4] = rk4(f, h, y0, t[0:4])
     
-    #print(len(t[0:4]))
-
     for i in range(3, len(t) - 1):
         w[i + 1] = ab4_step(f, t[i - 3:i + 1], w[i - 3:i + 1], h) # predictor
         w[i + 1] = am3_step(f, t[i - 2:i + 2], w[i - 2:i + 2], h) # corrector
@@ -208,14 +196,10 @@ def pc2(f, h, y0, t):
     ## Use midpoint method to obtain initial values.
     w[0:2] = mp2(f, h, y0, t[0:2])
     
-    #print(len(t[0:4]))
-
     for i in range(2, len(t) - 1):
         w[i + 1] = ab2_step(f, t[i - 1:i + 1], w[i - 1:i + 1], h) # predictor
         w[i + 1] = am2_step(f, t[i:i + 2], w[i:i + 2], h) # corrector
-        
-    #print('returning')
-    #print(w)
+
     return w
 
 
@@ -229,13 +213,14 @@ def rk2(f, h, y0, t):
         
     return w
 
-'''
-Variant of trapezoid method. Don't use.
-def pc(f, h, y0, t):
+
+def trapezoid(f, h, y0, t):
+    '''
+    Implicit trapezoid. Simple predictor/corrector.
+    '''
     w = [y0]
     for i in range(0, len(t) - 1):
         w.append(w[i] + h * f(t[i], w[i]))
         w[i + 1] = w[i] + (h / 2) * (f(t[i], w[i]) + f(t[i + 1], w[i + 1]))
         
     return w
-'''
