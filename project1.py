@@ -102,7 +102,7 @@ def bifurcation_plot(solver, h_set, num_iterations=230, depth=30, title='???'):
     for i in range(depth):
         ax.plot(h_set, w_set[:, i], color='white', ls='', marker=',')
     
-    # Clean us stylistically.
+    # Clean up stylistically.
     # Black background.
     ax.set_facecolor('#000000FF') # Black background
     fig.set_facecolor('#000000FF') # Black background
