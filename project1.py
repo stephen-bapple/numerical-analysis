@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
-import solvers
+import ode_solvers as solvers
 
 ################################################################################
 # This project deals with the following differential equation:
