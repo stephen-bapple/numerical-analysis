@@ -81,7 +81,7 @@ def compare_convergence(solver, h_set, num_iterations, solution, title='???'):
     fig.subplots_adjust(hspace=0)
     plt.setp([a.get_xticklabels() for a in fig.axes[:-1]], visible=False)
         
-    fig.savefig('Figure_%d' % fig_number, transparent=True)
+    fig.savefig('./project1_figures/Figure_%d' % fig_number, transparent=True)
     fig_number += 1
     plt.show()
 
@@ -115,7 +115,7 @@ def bifurcation_plot(solver, h_set, num_iterations=230, depth=30, title='???'):
     for spine in ax.spines.values():
         spine.set_color('white')
 
-    fig.savefig('Figure_%d' % fig_number, transparent=True)
+    fig.savefig('./project1_figures/Figure_%d' % fig_number, transparent=True)
     fig_number += 1
     plt.show()
 
