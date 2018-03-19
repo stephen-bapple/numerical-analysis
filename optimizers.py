@@ -150,6 +150,7 @@ def plot3d_with_mins(F, x_range=[-2, 2], y_range=[-2, 2], mins=[]):
     '''
     
     n = 1000
+    #N = n // 2
     xmin = x_range[0]
     xmax = x_range[1]
     ymin = y_range[0]
@@ -161,13 +162,15 @@ def plot3d_with_mins(F, x_range=[-2, 2], y_range=[-2, 2], mins=[]):
     Z = np.zeros((n + 1, n + 1))
     for i in range(n + 1):
         for j in range(n + 1):
-            Z[i, j] = F(x[i], y[j])
+            # Rows: y values. Columns: x values
+            Z[j, i] = F(x[i], y[j])
             
     X, Y = np.meshgrid(x, y)
 
     fig = plt.figure()
     ax1 = fig.add_subplot(111, projection='3d')
-    p1 = ax1.plot_surface(X, Y, Z, cmap=cm.jet)
+    
+    p1 = ax1.plot_surface(X, Y, Z, cmap=cm.terrain, alpha=(1 if not mins else 0.6))
     
     # Plot the minimums, if any.
     for min in mins:

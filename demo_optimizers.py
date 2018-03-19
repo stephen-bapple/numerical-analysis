@@ -1,3 +1,4 @@
+import numpy as np
 from optimizers import golden_section_search, multivariate_newtons,\
                        multivariate_newtons_multi_guess, weakest_line,\
                        steepest_descent_gss, conjugate_gradient,\
