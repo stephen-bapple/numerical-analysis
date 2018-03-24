@@ -11,7 +11,20 @@ Author: Stephen Bapple
 '''
 
 import numpy as np
-import optimizers
+import optimizers as opt
+
+
+def F(x, y):
+    '''
+    Rosenbrock's "banana function"
+    '''
+    return (1 - x)**2 + 100 * (y - x**2)**2
+    
+def J(x, y):
+    return -1
+
+def H(x, y):
+    return -1
 
 if __name__ == '__main__':
-    pass
+    print(opt.multivariate_newtons())
