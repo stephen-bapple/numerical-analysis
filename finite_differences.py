@@ -20,16 +20,17 @@ def problem():
     I = [0, 1]
 
     # Should be int before conversion, otherwise we have a bad h.
-    M = int((I[1]  - I[0])/ h); print('Number of spatial pts: ', M + 1)
+    M = int((I[1] - I[0]) / h)
+    print('Number of spatial pts: ', M + 1)
     m = M - 1
 
     # Discretize x coordinates.
     x = np.arange(0, 1 + h, h)
     x_sub = x[1:-1]
 
-    #print('x values: ', x)
-    #print('subset x_values: ', x_sub)
-    #print('size(x) == m?', (len(x_sub) == m))
+    # print('x values: ', x)
+    # print('subset x_values: ', x_sub)
+    # print('size(x) == m?', (len(x_sub) == m))
     
     # Diffusivity constant.
     D = 1
@@ -41,7 +42,7 @@ def problem():
     # Temporal discretization
     # This value of k satisfies the inequality Dk/h^2 < 1/2 for each interval
     # as well as evenly dividing t = {0.02, 3, 5, 10}
-    #k = 1 / 500
+    # k = 1 / 500
     k = 0.000049
     t = np.arange(0, 2, k); print(t)
     print('length of t: ', len(t))
@@ -54,8 +55,7 @@ def problem():
     # Initial temperature distribution
     def f(_x):
         return np.sin(2 * np.pi * _x)**2
-    
-    
+
     # Set up theta matrix
     t_mat = np.diagflat( m *[1 - 2* theta])\
       + np.diagflat((m - 1) * [theta], 1)\
@@ -68,7 +68,7 @@ def problem():
     w0 = np.matrix(np.zeros((m, 1)))
     for i in range(0, m):
         w0[i, 0] = f(x_sub[i])
-        #w0[i, 0] = f(x[i])
+        # w0[i, 0] = f(x[i])
     
     w0[0, 0] = Uat
     w0[-1, 0] = Ubt
@@ -116,7 +116,6 @@ def problem():
         time_text.set_text('time = %.6f seconds' % (i * k))
         return line, time_text
 
-
     # Init only required for blitting to give a clean slate.
     def init():
         line.set_ydata(np.ma.array(x, mask=True))
@@ -131,6 +130,7 @@ def problem():
     ax.set_ylabel('Degrees Fahrenheit')
     ax.set_xlabel('Position in rod.')    
     pyplot.show()
+
 
 if __name__ == '__main__':
     problem()

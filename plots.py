@@ -3,10 +3,12 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 
+
 # This function should be a plane. It should not change across y since it
 # purely depends on x.
 def F(x, y):
     return 3 * x
+
 
 n = 1000
 xmin = -2

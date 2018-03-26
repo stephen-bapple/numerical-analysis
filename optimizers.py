@@ -34,7 +34,7 @@ def golden_section_search(f, a, b, tolerance=0.5e-08):
 
 
 def multivariate_newtons(J, H, W, tolerance=0.5e-8):
-    s = np.linalg.solve(np.multiply(-1, H(W[0],W[1])), J(W[0], W[1]))
+    s = np.linalg.solve(np.multiply(-1, H(W[0], W[1])), J(W[0], W[1]))
     while np.linalg.norm(s) > tolerance:
         W += s
         s = np.linalg.solve(np.multiply(-1, H(W[0],W[1])), J(W[0], W[1]))
@@ -45,10 +45,10 @@ def multivariate_newtons(J, H, W, tolerance=0.5e-8):
 def multivariate_newtons_multi_guess(J, H, starting_guesses, tolerance=0.5e-8):
     mins = []
     for W in starting_guesses:
-        s = np.linalg.solve(np.multiply(-1, H(W[0],W[1])), J(W[0], W[1]))
+        s = np.linalg.solve(np.multiply(-1, H(W[0], W[1])), J(W[0], W[1]))
         while np.linalg.norm(s) > tolerance:
             W += s
-            s = np.linalg.solve(np.multiply(-1, H(W[0],W[1])), J(W[0], W[1]))
+            s = np.linalg.solve(np.multiply(-1, H(W[0], W[1])), J(W[0], W[1]))
 
         mins.append(W)
 
@@ -56,10 +56,10 @@ def multivariate_newtons_multi_guess(J, H, starting_guesses, tolerance=0.5e-8):
 
 
 def weakest_line(F, J, x0, s_max=0.5, delta=1.0e-03, tolerance=0.5e-08):
-    '''
+    """
     Steepest descent method. 
     Weakest line search with backtracking.
-    '''
+    """
     x = x0
     s = s_max
     v = np.multiply(-1, J(x[0], x[1]))
@@ -78,16 +78,16 @@ def weakest_line(F, J, x0, s_max=0.5, delta=1.0e-03, tolerance=0.5e-08):
 
         x += np.multiply(s, v)
         v = np.multiply(-1, J(x[0], x[1]))
-        
+
     return x
 
 
 def steepest_descent_gss(F, J, x0, s_max=0.5, delta=1.0e-03, tolerance=0.5e-08):
-    '''
+    """
     Steepest descent with golden section search.
     
     TODO: actually implement.
-    '''
+    """
     x = x0
     s = s_max
     v = np.multiply(-1, J(x[0], x[1]))
@@ -106,10 +106,10 @@ def steepest_descent_gss(F, J, x0, s_max=0.5, delta=1.0e-03, tolerance=0.5e-08):
 
     
 def conjugate_gradient(x0, A, b, tolerance=0.5e-08):
-    '''
+    """
     Iterative conjugate gradient method.
     Iterates until the 2 norm of the residual is less than a tolerance.
-    '''
+    """
     x = x0
     d = r = b - A * x
 
@@ -127,15 +127,19 @@ def conjugate_gradient(x0, A, b, tolerance=0.5e-08):
     return x
 
 
+def nelder_mead(f, x0, tolerance=0.5e-08):
+
+
+    pass
 ################################################################################
 # Visualizers                                                                  #
 ################################################################################
 
-def plot2d_with_mins(f, a, b, mins=[]):
-    '''
+def plot2d_with_mins(f, a, b, mins=()):
+    """
     Plot a 2D function.
-    '''
-    
+    """
+
     x_pts = np.linspace(a, b, 1000)
     fig, ax = plt.subplots()
     ax.plot(x_pts, f(x_pts), color='blue')
@@ -144,13 +148,12 @@ def plot2d_with_mins(f, a, b, mins=[]):
     plt.show()
 
 
-def plot3d_with_mins(F, x_range=[-2, 2], y_range=[-2, 2], mins=[]):
-    '''
+def plot3d_with_mins(F, x_range=(-2, 2), y_range=(-2, 2), mins=()):
+    """
     Plot a 3D function.
-    '''
+    """
     
     n = 1000
-    #N = n // 2
     xmin = x_range[0]
     xmax = x_range[1]
     ymin = y_range[0]
@@ -186,7 +189,7 @@ def plot3d_with_mins(F, x_range=[-2, 2], y_range=[-2, 2], mins=[]):
 # Sentinel. Currently used for testing.                                        #
 ################################################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     def F(u, v):
         return 10*u**2 - 16*u*v + 8*v**2 + 8*u - 16*v + 16
     def J(u, v):
@@ -205,4 +208,5 @@ if __name__ == '__main__':
     print('The minimum is: (%.2f, %.2f, %.2f)' 
           % (min[0], min[1], F(min[0], min[1])))
     
-    plot3d_with_mins(F, [0, 5], [0, 5], mins=[min])
+    #plot3d_with_mins(F, [0, 5], [0, 5], mins=[min])
+    plot3d_with_mins(F)
