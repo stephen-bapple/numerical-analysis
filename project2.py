@@ -45,13 +45,23 @@ def u(points):
     #print('potential:', potential)
     return potential
 
+def du(points):
+    x = [i for i in points[::3]]
+    y = [i for i in points[1::3]]
+    z = [i for i in points[2::3]]
 
+    # TODO: actually make it work.
+    dpotential = 0
+
+    v = [0] * len(x)
+    
+    return v
+    
 def main():
     mode = 2
 
     # Number of points
     n = 13
-
     # First two points, which are trivial.
     x = [0, 0]
     y = [0, 0]
@@ -66,29 +76,30 @@ def main():
         if i >= 13:
             num_randoms = 200
         else:
-            num_randoms = 10
+            num_randoms = 50
 
         if mode == 1:
             while u(solution) > -44.326801:
                 intermediate = np.append(solution, [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
 
-                v = minimize(u, intermediate, method='Powell', tol=0.5e-10)
+                v = minimize(u, intermediate, method='BFGS', tol=0.5e-10)
                 print(u(v.x), end=', ')
                 if min_solution is None or u(min_solution) > u(v.x):
                     min_solution = v.x
 
-            print('.')
+            print('.\n::::%d: %10f ::::' % (i, u(min_solution)))
             solution = min_solution
+
         elif mode == 2:
             for le in range(num_randoms):
                 intermediate = np.append(solution, [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
 
-                v = minimize(u, intermediate, method='Powell', tol=0.5e-10)
+                v = minimize(u, intermediate, method='BFGS', tol=0.5e-10)
                 print(u(v.x), end=', ')
                 if min_solution is None or u(min_solution) > u(v.x):
                     min_solution = v.x
 
-            print('.')
+            print('.\n::::%d: %10f ::::' % (i, u(min_solution)))
             solution = min_solution
 
         elif mode == 3:
@@ -103,7 +114,7 @@ def main():
 
                     intermediate = np.append(solution, [new_x, new_y, new_z])
 
-                    v = minimize(u, intermediate, method='Powell', tol=0.5e-10)
+                    v = minimize(u, intermediate, method='BFGS', tol=0.5e-10)
                     print(u(v.x), end=', ')
                     if min_solution is None or u(min_solution) > u(v.x):
                         min_solution = v.x
@@ -133,7 +144,7 @@ def main():
     ax1.set_ylabel('y')
     ax1.set_zlabel('z')
     fig.suptitle('n = %d' % i)
-    ax1.legend()
+    fig.legend()
     plt.show()
 
 
