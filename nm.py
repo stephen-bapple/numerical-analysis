@@ -7,10 +7,12 @@
 # Output: matrix x whose columns are vertices of simplex,
 # function values y of those vertices
 
-def nelder_mead(f,xbar,rad,k):
 
+
+def nelder_mead(f,xbar,rad,k):
     n = len(xbar);
-    
+    x = np.array((n, n + 1))
+    y = np.array(())
     # Done?
     
     # maybe: 
@@ -19,7 +21,6 @@ def nelder_mead(f,xbar,rad,k):
     x[:,0] = xbar; # each column of x is a simplex vertex
     x[:, 1:n + 1] = xbar * np.ones((1,n)) + rad * np.identity(n)
 
-    for j = 1:n+1
     for j in range(0, n + 1):
         y[j]=f(x[:,j])  # evaluate obj function f at each vertex
 

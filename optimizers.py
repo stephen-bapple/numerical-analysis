@@ -16,7 +16,7 @@ def golden_section_search(f, a, b, tolerance=0.5e-08):
     x2 = a + g * (b - a)
     f1 = f(x1)
     f2 = f(x2)
-    
+
     for i in range(k):
         if f1 < f2:
             b = x2

@@ -61,7 +61,7 @@ def main():
     mode = 2
 
     # Number of points
-    n = 13
+    n = 12
     # First two points, which are trivial.
     x = [0, 0]
     y = [0, 0]
