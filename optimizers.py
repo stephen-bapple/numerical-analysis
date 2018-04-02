@@ -34,10 +34,10 @@ def golden_section_search(f, a, b, tolerance=0.5e-08):
 
 
 def multivariate_newtons(J, H, W, tolerance=0.5e-8):
-    s = np.linalg.solve(np.multiply(-1, H(W[0], W[1])), J(W[0], W[1]))
+    s = np.linalg.solve(np.multiply(-1, H(W)), J(W))
     while np.linalg.norm(s) > tolerance:
         W += s
-        s = np.linalg.solve(np.multiply(-1, H(W[0],W[1])), J(W[0], W[1]))
+        s = np.linalg.solve(np.multiply(-1, H(W)), J(W))
 
     return W
 
@@ -45,39 +45,65 @@ def multivariate_newtons(J, H, W, tolerance=0.5e-8):
 def multivariate_newtons_multi_guess(J, H, starting_guesses, tolerance=0.5e-8):
     mins = []
     for W in starting_guesses:
-        s = np.linalg.solve(np.multiply(-1, H(W[0], W[1])), J(W[0], W[1]))
+        s = np.linalg.solve(np.multiply(-1, H(W)), J(W))
         while np.linalg.norm(s) > tolerance:
             W += s
-            s = np.linalg.solve(np.multiply(-1, H(W[0], W[1])), J(W[0], W[1]))
+            s = np.linalg.solve(np.multiply(-1, H(W)), J(W))
 
         mins.append(W)
 
     return mins
 
 
+# def weakest_line(F, J, x0, s_max=0.5, delta=1.0e-03, tolerance=0.5e-08):
+#     """
+#     Steepest descent method.
+#     Weakest line search with backtracking.
+#     """
+#     x = x0
+#     s = s_max
+#     v = np.multiply(-1, J(x[0], x[1]))
+#
+#     while np.linalg.norm(np.multiply(s, v), 2) > tolerance:
+#
+#         # No sense recomputing these every time...
+#         fx = F(x[0], x[1])
+#
+#         jTv = np.dot(J(x[0], x[1]), v)
+#
+#         xs = x + np.multiply(s, v)
+#         while F(xs[0], xs[1]) > fx + delta * s * jTv:
+#             s /= 2.0
+#             xs = x + np.multiply(s, v)
+#
+#         x += np.multiply(s, v)
+#         v = np.multiply(-1, J(x[0], x[1]))
+#
+#     return x
+
 def weakest_line(F, J, x0, s_max=0.5, delta=1.0e-03, tolerance=0.5e-08):
     """
-    Steepest descent method. 
+    Steepest descent method.
     Weakest line search with backtracking.
     """
     x = x0
     s = s_max
-    v = np.multiply(-1, J(x[0], x[1]))
-    
-    while np.linalg.norm(np.multiply(s, v), 2) > tolerance:
-        
-        # No sense recomputing these every time...
-        fx = F(x[0], x[1])
+    v = np.multiply(-1, J(x))
 
-        jTv = np.dot(J(x[0], x[1]), v)
-        
+    while np.linalg.norm(np.multiply(s, v), 2) > tolerance:
+
+        # No sense recomputing these every time...
+        fx = F(x)
+
+        jTv = np.dot(J(x), v)
+
         xs = x + np.multiply(s, v)
-        while F(xs[0], xs[1]) > fx + delta * s * jTv:
+        while F(xs) > fx + delta * s * jTv:
             s /= 2.0
             xs = x + np.multiply(s, v)
 
         x += np.multiply(s, v)
-        v = np.multiply(-1, J(x[0], x[1]))
+        v = np.multiply(-1, J(x))
 
     return x
 
@@ -90,17 +116,17 @@ def steepest_descent_gss(F, J, x0, s_max=0.5, delta=1.0e-03, tolerance=0.5e-08):
     """
     x = x0
     s = s_max
-    v = np.multiply(-1, J(x[0], x[1]))
+    v = np.multiply(-1, J(x))
     
     while np.linalg.norm(np.multiply(s, v), 2) > tolerance:
         def fs(s):
             xs = x + s * v
-            return F(xs[0], xs[1])
+            return F(xs)
         
         s = golden_section_search(fs, 0, 1)
 
         x += np.multiply(s, v)
-        v = np.multiply(-1, J(x[0], x[1]))
+        v = np.multiply(-1, J(x))
         
     return x
 
@@ -166,7 +192,7 @@ def plot3d_with_mins(F, x_range=(-2, 2), y_range=(-2, 2), mins=()):
     for i in range(n + 1):
         for j in range(n + 1):
             # Rows: y values. Columns: x values
-            Z[j, i] = F(x[i], y[j])
+            Z[j, i] = F([x[i], y[j]])
             
     X, Y = np.meshgrid(x, y)
 
@@ -190,12 +216,20 @@ def plot3d_with_mins(F, x_range=(-2, 2), y_range=(-2, 2), mins=()):
 ################################################################################
 
 if __name__ == "__main__":
-    def F(u, v):
+    def F(x):
+        u = x[0]
+        v = x[1]
         return 10*u**2 - 16*u*v + 8*v**2 + 8*u - 16*v + 16
-    def J(u, v):
+
+    def J(x):
+        u = x[0]
+        v = x[1]
         return [20*u - 16*v + 8,
                 -16*u+16*v - 16]
-    def H(u, v):
+
+    def H(x):
+        u = x[0]
+        v = x[1]
         return [[20, -16],
                 [-16, 16]]
 
@@ -206,7 +240,7 @@ if __name__ == "__main__":
 
     min = conjugate_gradient(x0, A, b)
     print('The minimum is: (%.2f, %.2f, %.2f)' 
-          % (min[0], min[1], F(min[0], min[1])))
+          % (min[0], min[1], F(min)))
     
     #plot3d_with_mins(F, [0, 5], [0, 5], mins=[min])
     plot3d_with_mins(F)

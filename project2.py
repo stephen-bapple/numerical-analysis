@@ -18,123 +18,82 @@ import optimizers as opt
 from scipy.optimize import minimize
 from random import uniform
 
+# Global minimums for Lennard-Jones clusters 3 through 13.
+# Source: http://doye.chem.ox.ac.uk/jon/structures/LJ/tables.150.html
+# Last accessed 2018-04-01
+true_energies = [-3.000000, -6.000000, -9.103852, -12.712062, -16.505384, -19.821489,
+                 -24.113360, -28.422532, -32.765970, -37.967600, -44.326801]
+
 
 def u(points):
-    x = [i for i in points[::3]]
-    y = [i for i in points[1::3]]
-    z = [i for i in points[2::3]]
-
+    """
+    Potential function.
+    """
     potential = 0
 
-    for j in range(1, len(x)):
-        for i in range(0, j):
-            #r = x[i]*x[i] + y[i]*y[i] + z[i]*z[i]\
-            #    + x[j]*x[j] + y[j]*y[j] + z[j]*z[j]\
-            #    - 2*(x[i]*x[j] + y[i]*y[j] + z[i]*z[j])
-            #r = r**(1/2)
-
+    # The potential is the sum of all the forces between each pair of molecules.
+    for j in range(3, len(points), 3):
+        for i in range(0, j, 3):
             if i == j:
                 print('i should never equal j')
-
-            r = ((x[i] - x[j])**2 + (y[i] - y[j])**2 + (z[i] - z[j])**2)#**(1/2)
-            #print('ij: %d|%d' % (i, j))
-            #print('r: %d | for: (%d, %d, %d) vs (%d, %d, %d)'
-            #      % (r, x[i], y[i], z[i], x[j], y[j], z[j]))
+            r = ((points[i] - points[j])**2 + (points[i + 1] - points[j + 1])**2
+                 + (points[i + 2] - points[j + 2])**2)
             potential += r**-6 - 2*r**-3
 
-    #print('potential:', potential)
     return potential
 
+
 def du(points):
-    x = [i for i in points[::3]]
-    y = [i for i in points[1::3]]
-    z = [i for i in points[2::3]]
+    """
+    Jacobian for the potential function.
+    """
 
-    # TODO: actually make it work.
-    dpotential = 0
+    v = [0] * len(points)
 
-    v = [0] * len(x)
-    
-    return v
-    
-def main():
-    mode = 2
+    for k in range(len(points) // 3):
+        potential = 0
 
-    # Number of points
-    n = 12
-    # First two points, which are trivial.
-    x = [0, 0]
-    y = [0, 0]
-    z = [0, 1]
-    solution = np.array([0, 0, 0,
-                         0, 0, 1])
-    min_solution = None
+        # The potential is the sum of all the forces between each pair of molecules.
+        for j in range(3, len(points), 3):
+            for i in range(0, j, 3):
+                if i == j:
+                    print('i should never equal j')
+
+                # Check if we're taking the derivative relative to this variable.
+                if i <= k <= i + 2:
+                    if k == i:
+                        jk = j
+                    elif k == i + 1:
+                        jk = j + 1
+                    else:  # k == i + 2
+                        jk = j + 2
+
+                    r = ((points[i] - points[j])**2 + (points[i + 1] - points[j + 1])**2
+                         + (points[i + 2] - points[j + 2])**2)
+
+                    potential += 12 * (-r**-7 + r**-4) * (points[k] - points[jk])
+
+                else:
+                    r = ((points[i] - points[j]) ** 2 + (points[i + 1] - points[j + 1]) ** 2
+                         + (points[i + 2] - points[j + 2]) ** 2)
+                    potential += r ** -6 - 2 * r ** -3
+
+        v[k] = potential
+    return np.array(v)
+
+
+def plot_structure(points):
+    x = [x for x in points[::3]]
+    y = [y for y in points[1::3]]
+    z = [z for z in points[2::3]]
+
     fig = plt.figure()
-
-    # Find every structure from 3 up to n
-    for i in range(3, n + 1):
-        if i >= 13:
-            num_randoms = 200
-        else:
-            num_randoms = 50
-
-        if mode == 1:
-            while u(solution) > -44.326801:
-                intermediate = np.append(solution, [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
-
-                v = minimize(u, intermediate, method='BFGS', tol=0.5e-10)
-                print(u(v.x), end=', ')
-                if min_solution is None or u(min_solution) > u(v.x):
-                    min_solution = v.x
-
-            print('.\n::::%d: %10f ::::' % (i, u(min_solution)))
-            solution = min_solution
-
-        elif mode == 2:
-            for le in range(num_randoms):
-                intermediate = np.append(solution, [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
-
-                v = minimize(u, intermediate, method='BFGS', tol=0.5e-10)
-                print(u(v.x), end=', ')
-                if min_solution is None or u(min_solution) > u(v.x):
-                    min_solution = v.x
-
-            print('.\n::::%d: %10f ::::' % (i, u(min_solution)))
-            solution = min_solution
-
-        elif mode == 3:
-            mag = .5
-            perturbations = [[0, 0, mag], [0, 0, -mag], [0, mag, 0], [0, mag, 0], [mag, 0, 0], [mag, 0, 0]]
-
-            for pert in perturbations:
-                for p in range(0, len(solution), 3):
-                    new_x = solution[i] + pert[0]
-                    new_y = solution[i + 1] + pert[1]
-                    new_z = solution[i + 2] + pert[2]
-
-                    intermediate = np.append(solution, [new_x, new_y, new_z])
-
-                    v = minimize(u, intermediate, method='BFGS', tol=0.5e-10)
-                    print(u(v.x), end=', ')
-                    if min_solution is None or u(min_solution) > u(v.x):
-                        min_solution = v.x
-
-            print('.\n::::%d: %10f ::::' % (i, u(min_solution)))
-            solution = min_solution
-
-    x = [x for x in solution[::3]]
-    y = [y for y in solution[1::3]]
-    z = [z for z in solution[2::3]]
-
     ax1 = fig.add_subplot(111, projection='3d')
     ax1.scatter(x, y, z, c='r', s=100)
 
     for j in range(1, len(x)):
         for k in range(0, j):
             ax1.plot([x[k], x[j]], [y[k], y[j]], [z[k], z[j]], color='k', alpha=0.3)
-
-    print(solution)
-    print('Energy: %10f' % u(solution))
 
     ax1.set_xlim3d(-2, 2)
     ax1.set_ylim3d(-2, 2)
@@ -143,9 +102,73 @@ def main():
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
     ax1.set_zlabel('z')
-    fig.suptitle('n = %d' % i)
-    fig.legend()
+    fig.suptitle('n = %d' % (len(points) // 3))
     plt.show()
+
+
+def section1():
+    pass
+
+
+def section2():
+    pass
+
+
+def section3():
+    pass
+
+
+def animate_structure():
+    pass
+
+
+def main():
+    # Number of points
+    n = 7
+    # First two points, which are trivial.
+    x = [0, 0]
+    y = [0, 0]
+    z = [0, 1]
+    solution = np.array([0, 0, 0,
+                         0, 0, 1])
+
+    ############################################################################
+    # Section 1:
+    # Attempt to use steepest descent with weakest line search
+    ############################################################################
+    section1()
+
+    ############################################################################
+    # Section 2:
+    # Use Nelder-Mead
+    ############################################################################
+    min_solution = None
+
+    # Find every structure from 3 up to n
+    for i in range(3, n + 1):
+        if i >= 13:
+            num_randoms = 200
+        else:
+            num_randoms = 200
+
+        for _ in range(num_randoms):
+            intermediate = np.append(solution, [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
+
+            v = minimize(u, intermediate, method='Nelder-Mead', tol=0.5e-10).x
+            #v = opt.weakest_line(u, du, intermediate, tolerance=0.5e-10)
+            #v = minimize(u, intermediate, method='BFGS', jac=du, tol=0.5e-15).x
+            print(u(v), end=', ')
+
+            if min_solution is None or u(min_solution) > u(v):
+                min_solution = v
+
+        print('.\n::::%d: %10f ::::' % (i, u(min_solution)))
+        solution = min_solution
+
+    print(solution)
+    print('Energy: %10f' % u(solution))
+
+    plot_structure(solution)
 
 
 if __name__ == '__main__':
