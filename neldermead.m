@@ -25,7 +25,8 @@ x=x(:,r); % and rank the vertices the same way
 for i=1:k
     xbar = mean(x(:,1:n)’)’; % xbar is the centroid of the face
     xh = x(:, n+1); % omitting the worst vertex xh
-    xr = 2*xbar - xh; yr = f(xr);
+    xr = 2*xbar - xh; 
+    yr = f(xr);
     
     if yr < y(n)
         if yr < y(1) % try expansion xe

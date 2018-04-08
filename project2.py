@@ -1,13 +1,12 @@
 """
 Project #2 for Numerical Analysis II
 
-This project revolves around applying various optimization techniques to the
-following system: TBD
+This project revolves around applying various optimization techniques
+to optimize Lennard-Jones clusters.
 
 Optimization techniques used are found in optimizers.py
 
 Author: Stephen Bapple
-
 """
 
 import numpy as np
@@ -21,8 +20,8 @@ from random import uniform
 # Global minimums for Lennard-Jones clusters 3 through 13.
 # Source: http://doye.chem.ox.ac.uk/jon/structures/LJ/tables.150.html
 # Last accessed 2018-04-01
-true_energies = [-3.000000, -6.000000, -9.103852, -12.712062, -16.505384, -19.821489,
-                 -24.113360, -28.422532, -32.765970, -37.967600, -44.326801]
+true_energies = [0, 0, 0, -3.000000, -6.000000, -9.103852, -12.712062, -16.505384,
+                 -19.821489, -24.113360, -28.422532, -32.765970, -37.967600, -44.326801]
 
 
 def u(points):
@@ -68,17 +67,20 @@ def du(points):
                     else:  # k == i + 2
                         jk = j + 2
 
-                    r = ((points[i] - points[j])**2 + (points[i + 1] - points[j + 1])**2
+                    r = ((points[i] - points[j])**2
+                         + (points[i + 1] - points[j + 1])**2
                          + (points[i + 2] - points[j + 2])**2)
 
-                    potential += 12 * (-r**-7 + r**-4) * (points[k] - points[jk])
+                    potential += 12*(-r**-7 + r**-4)*(points[k] - points[jk])
 
                 else:
-                    r = ((points[i] - points[j]) ** 2 + (points[i + 1] - points[j + 1]) ** 2
-                         + (points[i + 2] - points[j + 2]) ** 2)
+                    r = ((points[i] - points[j])**2
+                         + (points[i + 1] - points[j + 1])**2
+                         + (points[i + 2] - points[j + 2])**2)
                     potential += r ** -6 - 2 * r ** -3
 
         v[k] = potential
+
     return np.array(v)
 
 
@@ -106,45 +108,26 @@ def plot_structure(points):
     plt.show()
 
 
-def section1():
-    pass
-
-
-def section2():
-    pass
-
-
-def section3():
-    pass
-
-
 def animate_structure():
     pass
 
 
 def main():
-    # Number of points
-    n = 7
+    steepest_descent_errors = []
+    
     # First two points, which are trivial.
-    x = [0, 0]
-    y = [0, 0]
-    z = [0, 1]
-    solution = np.array([0, 0, 0,
-                         0, 0, 1])
+    initial_solution = np.array([0, 0, 0,
+                                 0, 0, 1])
 
     ############################################################################
     # Section 1:
     # Attempt to use steepest descent with weakest line search
     ############################################################################
-    section1()
-
-    ############################################################################
-    # Section 2:
-    # Use Nelder-Mead
-    ############################################################################
+    '''
+    # Use 4 points.
+    n = 4
+    solution = initial_solution
     min_solution = None
-
-    # Find every structure from 3 up to n
     for i in range(3, n + 1):
         if i >= 13:
             num_randoms = 200
@@ -159,6 +142,53 @@ def main():
             #v = minimize(u, intermediate, method='BFGS', jac=du, tol=0.5e-15).x
             print(u(v), end=', ')
 
+            if min_solution is None or u(min_solution) > u(v):
+                min_solution = v
+
+        print('.\n::::%d: %10f ::::' % (i, u(min_solution)))
+        solution = min_solution
+
+    print(solution)
+    print('Energy: %10f' % u(solution))
+
+    plot_structure(solution)
+    '''
+
+    ############################################################################
+    # Section 2:
+    # Use Nelder-Mead
+    ############################################################################
+    # Use 7 points.
+    n = 7
+    solution = initial_solution
+    min_solution = None
+
+    # Find every structure from 3 up to n
+    for i in range(3, n + 1):
+        min_solution=None
+        if i >= 13:
+            num_randoms = 200
+        else:
+            num_randoms = 200
+
+        for _ in range(num_randoms):
+            intermediate = np.append(solution, [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
+
+            v = minimize(u, intermediate, method='Nelder-Mead', tol=0.5e-10).x
+            print("__SIZE OF GUESS__::: %d" % len(intermediate))
+            #v = opt.nelder_mead(u, intermediate, 1, tol=0.5e-20)
+            #v = v[0][:-1]
+            print("__SIZE OF SOL__::: %d" % len(v))
+            
+            print('v is ', v)
+            #plot_structure(v)
+            #v = opt.weakest_line(u, du, intermediate, tolerance=0.5e-10)
+            #v = minimize(u, intermediate, method='BFGS', jac=du, tol=0.5e-15).x
+            print(u(v), end=', ')
+
+            print('--------------------------------------------------------------------------------------------------------------------------min sol:', min_solution)
+            print('u(min sol):', u(min_solution) if min_solution is not None else "Undefined")
+            print('u(v): ', u(v))
             if min_solution is None or u(min_solution) > u(v):
                 min_solution = v
 

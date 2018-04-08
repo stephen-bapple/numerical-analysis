@@ -7,7 +7,7 @@ A = np.matrix([[3., 1., 2.],
                   [1., 3., -2.],
                   [2., -2., 6.]])
 
-                  
+
 def qr_iteration(A):
     Q, R = np.linalg.qr(A)
     for k in range(N):
@@ -26,7 +26,7 @@ def nsi(A):
     
     return lambd
 
-    
+
 print(qr_iteration(A))
 print('----------------------')
 print(nsi(A))

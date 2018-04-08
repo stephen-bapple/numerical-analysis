@@ -152,11 +152,101 @@ def conjugate_gradient(x0, A, b, tolerance=0.5e-08):
 
     return x
 
+# Nelder-Mead method copied from Numerical Analysis 2nd Edition by
+# Timothy Sauer.
+# And translated from Matlab to Python by Stephen Bapple
+#
+# Input: function f, best guess xbar (column vector),
+# initial search radius rad and number of steps k
+# Output: matrix x whose columns are vertices of simplex,
+# function values y of those vertices
+def nelder_mead(f, xbar, rad, max_iter=999999, tol=0.5e-6):
+    #n = len(xbar);
+    xbar = np.array(xbar, dtype=float)
+    n = xbar.shape[0]
+#    print(n)
+    #xbar = np.zeros((n+1, n))
+    #xbar[0] = x0
+    x = np.zeros((n, n + 1))
+    y = np.zeros((n + 1))
+#    print(xbar)
+#    print('x is ', x)
+    x[:, 0] = xbar
+    
+#    print(x)
+#    print(x[:, 0])
+    # Done?
+    # maybe: 
+    # x = np.array((n, n + 1))
+    # y 
+    x[:,0] = xbar; # each column of x is a simplex vertex
+    x[:, 1:n + 1] = xbar * np.ones((1,n)) + rad * np.identity(n)
 
-def nelder_mead(f, x0, tolerance=0.5e-08):
+    for j in range(0, n + 1):
+        y[j]=f(x[:,j])  # evaluate obj function f at each vertex
 
+    #[y,r]=sort(y); # sort the function values in ascending order
+    r = y.argsort(axis=0)
+    y = y[r]
 
-    pass
+    x = x[:, r] # and rank the vertices the same way
+
+    iter = 1
+    while iter < max_iter and np.max(np.ravel(np.abs(x[1:] - x[0]))) > tol\
+                          and np.max(np.abs(y[0] - y[1:])) > tol:
+        xbar = np.mean[x[:, 0:n].T].T # xbar is the centroid of the face
+        xh = x[:, n]          # omitting the worst vertex xh
+        xr = 2*xbar - xh 
+        yr = f(xr)
+        
+        if yr < y[n - 1]:
+            if yr < y[0]: # try expansion xe
+                xe = 3*xbar - 2*xh 
+                ye = f(xe)
+                
+                if ye < yr: # accept expansion
+                    x[:, n] = xe
+                    y[n] = f(xe)
+                else: #% accept reflection
+                    x[:,n] = xr 
+                    y[n] = f(xr)
+
+            else: # xr is middle of pack, accept reflection
+                x[:,n] = xr
+                y[n] = f(xr)
+        else: # xr is still the worst vertex, contract
+            if yr < y[n]: # try outside contraction xoc
+                xoc = 1.5*xbar - 0.5*xh
+                yoc = f(xoc)
+                if yoc < yr: # accept outside contraction
+                    x[:,n] = xoc
+                    y[n] = f(xoc)
+                else: # shrink simplex toward best point
+                    for j in range(1, n + 1):
+                        x[:,j] = 0.5*x[:,0]+0.5*x[:,j] 
+                        y[j] = f(x[:,j])
+            
+            else: # xr is even worse than the previous worst
+                xic = 0.5*xbar+0.5*xh
+                yic = f(xic)
+                
+                if yic < y[n]: # accept inside contraction
+                    x[:,n] = xic 
+                    y[n] = f(xic)
+                else: # shrink simplex toward best point
+                    for j in range(1, n + 1):
+                        x[:,j] = 0.5*x[:,1]+0.5*x[:,j]
+                        y[j] = f(x[:,j])
+        
+        # Resort the obj function values.
+        r = y.argsort(axis=0)
+        y = y[r]
+        x = x[:, r] # and rank the vertices the same way
+        
+        iter += 1
+        
+    return x
+
 ################################################################################
 # Visualizers                                                                  #
 ################################################################################
@@ -198,9 +288,9 @@ def plot3d_with_mins(F, x_range=(-2, 2), y_range=(-2, 2), mins=()):
 
     fig = plt.figure()
     ax1 = fig.add_subplot(111, projection='3d')
-    
+
     p1 = ax1.plot_surface(X, Y, Z, cmap=cm.terrain, alpha=(1 if not mins else 0.6))
-    
+
     # Plot the minimums, if any.
     for min in mins:
         ax1.scatter3D(min[0], min[1], F(min[0], min[1]))
