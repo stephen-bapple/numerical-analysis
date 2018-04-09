@@ -1,26 +1,10 @@
 import optimizers as opt
 
-
-def F(x, y):
-    """
-    Rosenbrock's "banana function"
-    """
-    return (1 - x)**2 + 100 * (y - x**2)**2
-
-
-def J(x, y):
-    return [2*x - 2 - 400*x*(y - x**2), 200*(y - x**2)]
-
-
-def H(x, y):
-    return [[2 - 400*y + 1200*x**2, -400*x],
-            [-200, 200]]
-
-
-if __name__ == '__main__':
+def main():
+    '''
     x, y = opt.multivariate_newtons(J, H, [-1.9, 2], 0.5e-15)
     print('(%.20f, %.20f)' % (x, y))
-    opt.plot3d_with_mins(F, [-2, 2], [-1, 3], [[-1.9, 2],[x, y]])
+    opt.plot3d_with_mins(F, [-2, 2], [-1, 3], [[-1.9, 2], [x, y]])
 
     x, y = opt.weakest_line(F, J, [-1.9, 2], tolerance=0.5e-15)
     print('(%.20f, %.20f)' % (x, y))
@@ -29,7 +13,34 @@ if __name__ == '__main__':
     x, y = opt.steepest_descent_gss(F, J, [-1.9, 2], tolerance=0.5e-15)
     print('(%.20f, %.20f)' % (x, y))
     opt.plot3d_with_mins(F, [-2, 2], [-1, 3], [[-1.9, 2], [x, y]])
-
-    x, y = opt.weakest_line(F, J, [-1.9, 2], tolerance=0.5e-15)
+    '''
+    v = opt.nelder_mead(F, [-1.9, 2], 3, xtol=0.5e-10, ftol=0.5e-10)
+    print(v)
+    v = v[0][:-1]
+    x = v[0]
+    y = v[1]
     print('(%.20f, %.20f)' % (x, y))
     opt.plot3d_with_mins(F, [-2, 2], [-1, 3], [[-1.9, 2], [x, y]])
+
+
+def F(v):
+    """
+    Rosenbrock's "banana function"
+    """
+    x, y = v
+    return (1 - x)**2 + 100 * (y - x**2)**2
+
+
+def J(v):
+    x, y = v
+    return [2*x - 2 - 400*x*(y - x**2), 200*(y - x**2)]
+
+
+def H(v):
+    x, y = v
+    return [[2 - 400*y + 1200*x**2, -400*x],
+            [-200, 200]]
+
+
+if __name__ == '__main__':
+    main()

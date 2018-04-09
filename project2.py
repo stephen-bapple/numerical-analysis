@@ -113,7 +113,12 @@ def animate_structure():
 
 
 def main():
-    steepest_descent_errors = []
+    #try_steepest_descent()
+    try_nelder_mead()
+
+
+def try_steepest_descent():
+    errors = []
     
     # First two points, which are trivial.
     initial_solution = np.array([0, 0, 0,
@@ -123,24 +128,20 @@ def main():
     # Section 1:
     # Attempt to use steepest descent with weakest line search
     ############################################################################
-    '''
     # Use 4 points.
-    n = 4
+    n = 7
     solution = initial_solution
     min_solution = None
     for i in range(3, n + 1):
-        if i >= 13:
-            num_randoms = 200
-        else:
-            num_randoms = 200
+        num_randoms = 1000
 
         for _ in range(num_randoms):
             intermediate = np.append(solution, [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
+            while u(intermediate) > 10:
+                intermediate = np.append(solution, [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
 
-            v = minimize(u, intermediate, method='Nelder-Mead', tol=0.5e-10).x
-            #v = opt.weakest_line(u, du, intermediate, tolerance=0.5e-10)
-            #v = minimize(u, intermediate, method='BFGS', jac=du, tol=0.5e-15).x
-            print(u(v), end=', ')
+            v = opt.weakest_line(u, du, intermediate, tol=0.5e-10)
+            #print(u(v), end=', ', flush=True)
 
             if min_solution is None or u(min_solution) > u(v):
                 min_solution = v
@@ -152,47 +153,40 @@ def main():
     print('Energy: %10f' % u(solution))
 
     plot_structure(solution)
-    '''
+
+
+def try_nelder_mead():
+    errors = []
+
+    # First two points, which are trivial.
+    initial_solution = np.array([0, 0, 0,
+                                 0, 0, 1])
 
     ############################################################################
-    # Section 2:
-    # Use Nelder-Mead
+    # Section 2:                                                               #
+    # Use Nelder-Mead                                                          #
     ############################################################################
     # Use 7 points.
-    n = 7
+    n = 4
     solution = initial_solution
     min_solution = None
 
     # Find every structure from 3 up to n
     for i in range(3, n + 1):
-        min_solution=None
-        if i >= 13:
-            num_randoms = 200
-        else:
-            num_randoms = 200
+        num_randoms = 10
 
         for _ in range(num_randoms):
             intermediate = np.append(solution, [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
-
-            v = minimize(u, intermediate, method='Nelder-Mead', tol=0.5e-10).x
-            print("__SIZE OF GUESS__::: %d" % len(intermediate))
-            #v = opt.nelder_mead(u, intermediate, 1, tol=0.5e-20)
-            #v = v[0][:-1]
-            print("__SIZE OF SOL__::: %d" % len(v))
-            
-            print('v is ', v)
-            #plot_structure(v)
-            #v = opt.weakest_line(u, du, intermediate, tolerance=0.5e-10)
-            #v = minimize(u, intermediate, method='BFGS', jac=du, tol=0.5e-15).x
-            print(u(v), end=', ')
-
-            print('--------------------------------------------------------------------------------------------------------------------------min sol:', min_solution)
-            print('u(min sol):', u(min_solution) if min_solution is not None else "Undefined")
-            print('u(v): ', u(v))
+            while u(intermediate) > 10:
+                intermediate = np.append(solution, [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
+                print('stuck priming', flush=True)
+            v = opt.nelder_mead(u, intermediate, .5, max_iter=999, xtol=0.5e-6, ftol=0.5e-6)
+            v = v[0][:-1]
+            # print(u(v), end=', ')
             if min_solution is None or u(min_solution) > u(v):
                 min_solution = v
-
-        print('.\n::::%d: %10f ::::' % (i, u(min_solution)))
+            print('stuck calculating', flush=True)
+        print('::::%d: %10f ::::' % (i, u(min_solution)))
         solution = min_solution
 
     print(solution)
