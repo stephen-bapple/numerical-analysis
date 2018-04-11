@@ -134,7 +134,7 @@ def conjugate_gradient(x0, A, b, tolerance=0.5e-08):
 # initial search radius rad and number of steps k
 # Output: matrix x whose columns are vertices of simplex,
 # function values y of those vertices
-def nelder_mead(f, xbar, rad, max_iter=99999, xtol=0.5e-4, ftol=0.5e-4):
+def nelder_mead(f, xbar, rad=1, max_iter=99999, xtol=0.5e-4, ftol=0.5e-4):
 
     xbar = np.array(xbar, dtype=float)
     n = xbar.shape[0]
@@ -302,3 +302,7 @@ def main():
     
     # plot3d_with_mins(F, [0, 5], [0, 5], mins=[min])
     plot3d_with_mins(F)
+
+
+if __name__ == "__main__":
+    main()
