@@ -4,7 +4,11 @@ Project #2 for Numerical Analysis II
 This project revolves around applying various optimization techniques
 to optimize Lennard-Jones clusters.
 
-Optimization techniques used are found in optimizers.py
+Notes on related files:
+- Optimization techniques used are found in optimizers.py
+
+- Functions used are located in lennard_jones_functions.py to ensure they are
+  cached, as they are computationally intensive.
 
 Author: Stephen Bapple
 """
@@ -21,7 +25,7 @@ from lennard_jones_functions import u, du
 
 # Global minimums for Lennard-Jones clusters 3 through 32.
 # Source: http://doye.chem.ox.ac.uk/jon/structures/LJ/tables.150.html
-# Last accessed 2018-04-09
+# Last accessed 2018-04-14
                #              3          4           5          6
 true_energies = [0, 0, 0, -3.000000, -6.000000, -9.103852, -12.712062,
 
@@ -335,7 +339,7 @@ def compare_tolerances(n, initial_solution, u, du, num_randoms, tol1, tol2):
     
     plt.show()
 
-def plot_n_structures(n, initial_solution, optimizer, u, num_randoms, **kwargs):
+def plot_n_structures(n, initial_solution, u, num_randoms, du, tol):
     progress = 0
     solution = initial_solution
     min_solution = None
@@ -344,10 +348,11 @@ def plot_n_structures(n, initial_solution, optimizer, u, num_randoms, **kwargs):
     
     for i in range(3, n + 1):
         progress = 0
-        a = 0.75
+        a = 0.8
         umin = 0
 
         # Try num_randoms many guesses.
+        #while umin > true_energies[i] + 0.5e-3:
         for _ in range(num_randoms):
             intermediate = np.append(solution, [uniform(-a, a),
                                                 uniform(-a, a),
@@ -358,14 +363,9 @@ def plot_n_structures(n, initial_solution, optimizer, u, num_randoms, **kwargs):
                                                     uniform(-a, a),
                                                     uniform(-a, a)])
 
-            # TODO: Find a cleaner way to do this. 
-            # 
-            # Decide if we are using a jacobian or derivative free method.
-            #print('starting optimizer')
-            if 'J' in kwargs:
-                v = optimizer(F=u, x0=intermediate, **kwargs)
-            else:
-                v = optimizer(u, intermediate, **kwargs)
+            # Actually run the optimizer.
+            #v = opt.weakest_line(u, du, x0, tol=tol)
+            v = minimize(u, intermediate, method='BFGS', jac=du, tol=tol).x
 
             # Update minimum solution if necessary.
             uv = u(v)
@@ -377,11 +377,11 @@ def plot_n_structures(n, initial_solution, optimizer, u, num_randoms, **kwargs):
             progress += 1
             print('Done: %.2f%%' % ((progress / num_randoms) * 100), end='\r')
             
-        print('--------------------------')
+        print('\n--------------------------')
         print('Number of atoms: %d\n' % i + 
               'Estimated Minimum Energy : %10f\n' % umin + 
               'Actual Minimum Energy    : %10f\n' % true_energies[i] + 
-              'Absolute error           : %10f\n' % abs(true_energies[i] - umin))
+              'Absolute error           : %10f\n' % abs(true_energies[i]-umin))
 
         solution = min_solution
         
@@ -410,9 +410,60 @@ def plot_n_structures(n, initial_solution, optimizer, u, num_randoms, **kwargs):
 
     input('Ready to display structures?')
     
-    fig.suptitle('Structures %d through %d' %(3, i))
+    fig.suptitle('Structures %d through %d' %(3, n))
     plt.show()
 
+
+def plot_true_structures(n):
+    # The files opened here were downloaded from:
+    # http://doye.chem.ox.ac.uk/jon/structures/LJ/tables.150.html
+    # The files were downloaded on: 2018-04-14
+    fig = plt.figure()
+
+    for i in range(3, n + 1):    
+        solution = []
+        
+        # The name of the file is the same as the atom number.
+        input_file = open('./LJ/' + str(i), 'r');
+
+        # Get all the points in the file.
+        for line in input_file.readlines():
+
+            line = line.strip()
+            for number in line.split():
+                solution.append(float(number))
+        
+        # Translate structure back to origin.
+        translate_to_origin(solution)
+        
+        points = solution[:]
+        x = [x for x in points[::3]]
+        y = [y for y in points[1::3]]
+        z = [z for z in points[2::3]]
+        fignum = int('23' + str(i - 2))
+        ax1 = fig.add_subplot(fignum, projection='3d')
+        ax1.scatter(x, y, z, c='b', s=100)
+
+        for j in range(1, len(x)):
+            for k in range(0, j):
+                ax1.plot([x[k], x[j]], [y[k], y[j]], [z[k], z[j]], color='k', alpha=0.2)
+        ax1.set_title('n = %d' % i)
+        ax1.set_xlim3d(-1.5, 1.5)
+        ax1.set_ylim3d(-1.5, 1.5)
+        ax1.set_zlim3d(-1.5, 1.5)
+        ax1.set_aspect('equal')
+        ax1.set_xlabel('x')
+        ax1.set_ylabel('y')
+        ax1.set_zlabel('z')
+        
+        # Close file.
+        input_file.close()
+        
+        
+    input('Ready to display structures?')
+    
+    fig.suptitle('Structures %d through %d' %(3, n))
+    plt.show()
 
 def translate_to_origin(v):
     x = v[0]
@@ -472,9 +523,9 @@ def main():
     ##                                                                        ##
     #  Plot all n structures                                                   # 
     ##                                                                        ##
-    plot_n_structures(n, initial_solution, opt.weakest_line,
-                           u, r, J=du, tol=0.5e-10)
-    
+    plot_n_structures(n, initial_solution, u, r, du, 0.5e-10)
+    plot_true_structures(n)
+
     ##                                                                        ##
     #  Try steepest descent with weakest_line search                           #
     #  Using completely random guesses.                                        # 

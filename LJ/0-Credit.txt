@@ -1,0 +1,3 @@
+Global minimums for Lennard-Jones clusters 3 through 150.
+Source: http://doye.chem.ox.ac.uk/jon/structures/LJ/tables.150.html
+Downloaded 2018-04-14
