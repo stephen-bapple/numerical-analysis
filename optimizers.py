@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
+from matplotlib import cm, animation
 
 ################################################################################
 # Minimizers                                                                   #
@@ -42,30 +42,16 @@ def multivariate_newtons(J, H, W, tol=0.5e-8):
     return W
 
 
-def multivariate_newtons_multi_guess(J, H, starting_guesses, tol=0.5e-8):
-    mins = []
-    for W in starting_guesses:
-        s = np.linalg.solve(np.multiply(-1, H(W)), J(W))
-        while np.linalg.norm(s) > tol:
-            W += s
-            s = np.linalg.solve(np.multiply(-1, H(W)), J(W))
-
-        mins.append(W)
-
-    return mins
-
-
-def weakest_line(F, J, x0, s_max=0.5, delta=1.0e-03, tol=0.5e-08):
+def weakest_line(F, J, x0, s_max=1, delta=1.0e-03, tol=0.5e-08):
     """
     Steepest descent method.
     Weakest line search with backtracking.
     """
-    x = x0
     s = s_max
+    x = x0
     v = np.multiply(-1, J(x))
 
     while np.linalg.norm(np.multiply(s, v), 2) > tol:
-
         # No sense recomputing these every time...
         fx = F(x)
 
@@ -78,17 +64,17 @@ def weakest_line(F, J, x0, s_max=0.5, delta=1.0e-03, tol=0.5e-08):
 
         x += np.multiply(s, v)
         v = np.multiply(-1, J(x))
-
+    
     return x
 
 
-def steepest_descent_gss(F, J, x0, s_max=0.5, delta=1.0e-03, tol=0.5e-08):
+def steepest_descent_gss(F, J, x0, s_max=1, delta=1.0e-03, tol=0.5e-08):
     """
     Steepest descent with golden section search.
 
     """
-    x = x0
     s = s_max
+    x = x0
     v = np.multiply(-1, J(x))
     
     while np.linalg.norm(np.multiply(s, v), 2) > tol:
@@ -126,6 +112,75 @@ def conjugate_gradient(x0, A, b, tolerance=0.5e-08):
     return x
 
 
+def conjugate_gradient_search(F, J, x0, a_max=1, delta=1.0e-03, tol=0.5e-08):
+    """
+    Iterative conjugate gradient method.
+    Iterates until the 2 norm of the residual is less than a tolerance.
+    """
+    a = a_max
+    x = x0
+    d = r = np.multiply(-1, J(x))
+
+    while np.linalg.norm(r, 2) > tol:
+        #a = a_max
+        fx = F(x)
+        jTd = np.dot(J(x), d)
+        xa = x + np.multiply(a, d)
+        
+        while F(xa) > fx + delta * a * jTd:
+            a /= 2.0
+            xa = x + np.multiply(a, d)
+            
+        x = x + np.multiply(a, d)
+
+        bot = r @ r.T
+        r = np.multiply(-1, J(x))
+        B = (r @ r.T)/ bot
+
+        d = r + B * d
+
+    return x
+    
+    
+def bfgs(F, J, x0, s_max=1, delta=1.0e-02, tol=0.5e-8):
+    x = np.array(x0)
+    #print(x.shape)
+    I = np.eye(x.shape[0])
+    B = I
+    Bi = I
+    s = s_max
+    p = np.linalg.solve(B, np.multiply(-1, J(x)))
+
+    while np.linalg.norm(J(x)) > tol:
+        fx = F(x)
+        
+        jTv = np.dot(J(x), p)
+        xs = x + np.multiply(s, p)
+        
+        
+        while F(xs) > fx + delta * s * jTv:
+            s /= 2.0
+            xs = x + np.multiply(s, p)
+        
+        jx_last = np.matrix(J(x))
+        s = np.multiply(s, p)
+        x += s
+        y = np.subtract(J(x), jx_last)
+        s = np.matrix(s)
+        
+        #B = B + (y.T * y) / (y * s.T) - (B * s.T * s * B) / (s * B * s.T)
+        # p = np.linalg.solve(B, np.multiply(-1, J(x)))
+        Bi = Bi + ((s * y.T + y * Bi * y.T)[0,0] * (s.T * s)) / (s * y.T)[0,0]**2\
+             - (Bi * y.T * s + s.T * y * Bi) / (s * y.T)[0,0]
+        
+        p = -1 * Bi * np.matrix(J(x)).T
+        
+        p = np.reshape(p, (np.product(p.shape),))
+        p = np.array(p)[0]
+    print(x)
+    return x
+
+    
 # Nelder-Mead method copied from Numerical Analysis 2nd Edition by
 # Timothy Sauer.
 # And translated from Matlab to Python by Stephen Bapple
@@ -212,7 +267,7 @@ def nelder_mead(f, xbar, rad=1, max_iter=99999, xtol=0.5e-4, ftol=0.5e-4):
     #else:
     #    print('Both tolerances reached.')
 
-    return x
+    return x[0][:-1]
 
 
 ################################################################################
@@ -294,7 +349,8 @@ def main():
     A = np.matrix([[20, -16], [-16, 16]])
     b = np.matrix([[-8],[16]])
 
-    x0 = [[2.5], [2.5]]
+    x0 = [[2.5],
+          [2.5]]
 
     min = conjugate_gradient(x0, A, b)
     print('The minimum is: (%.2f, %.2f, %.2f)' 
