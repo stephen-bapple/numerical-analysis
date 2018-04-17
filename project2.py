@@ -26,7 +26,7 @@ from lennard_jones_functions import u, du
 # Global minimums for Lennard-Jones clusters 3 through 32.
 # Source: http://doye.chem.ox.ac.uk/jon/structures/LJ/tables.150.html
 # Last accessed 2018-04-14
-               #              3          4           5          6
+                #             3          4           5          6
 true_energies = [0, 0, 0, -3.000000, -6.000000, -9.103852, -12.712062,
 
                  #    7              8        9           10          11

@@ -118,11 +118,11 @@ def conjugate_gradient_search(F, J, x0, a_max=1, delta=1.0e-03, tol=0.5e-08):
     Iterates until the 2 norm of the residual is less than a tolerance.
     """
     a = a_max
-    x = x0
+    x = np.array(x0)
     d = r = np.multiply(-1, J(x))
 
     while np.linalg.norm(r, 2) > tol:
-        #a = a_max
+        a = a_max
         fx = F(x)
         jTd = np.dot(J(x), d)
         xa = x + np.multiply(a, d)
@@ -131,12 +131,23 @@ def conjugate_gradient_search(F, J, x0, a_max=1, delta=1.0e-03, tol=0.5e-08):
             a /= 2.0
             xa = x + np.multiply(a, d)
             
-        x = x + np.multiply(a, d)
-
-        bot = r @ r.T
+        ##x = x + np.multiply(a, d)
+        x_prev = x
+        x = xa
+        
+        #1#bot = r @ r.T
+        #1#print('top of B:', r@r.T)
+        #1#print('bottom of B:', bot)
+       
         r = np.multiply(-1, J(x))
-        B = (r @ r.T)/ bot
-
+        #1#B = (r @ r.T)/ bot
+        B =(x@ (x - x_prev).T)/(x_prev @ x_prev.T)
+        #print(B)
+        #print(type(B))
+        #print(0.0)
+        #print(type(0.0))
+        B = max(0.0, B)
+        
         d = r + B * d
 
     return x
@@ -349,15 +360,16 @@ def main():
     A = np.matrix([[20, -16], [-16, 16]])
     b = np.matrix([[-8],[16]])
 
-    x0 = [[2.5],
-          [2.5]]
-
-    min = conjugate_gradient(x0, A, b)
+    #x0 = [[2.5],
+    #      [2.5]]
+    x0  = [2.5, 2.5]
+    #min = conjugate_gradient(x0, A, b)
+    min = conjugate_gradient_search(F, J, x0)
     print('The minimum is: (%.2f, %.2f, %.2f)' 
           % (min[0], min[1], F(min)))
     
-    # plot3d_with_mins(F, [0, 5], [0, 5], mins=[min])
-    plot3d_with_mins(F)
+    plot3d_with_mins(F, [0, 5], [0, 5], mins=[min])
+    #plot3d_with_mins(F)
 
 
 if __name__ == "__main__":

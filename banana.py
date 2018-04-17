@@ -21,7 +21,7 @@ def main():
 #    print('(%.20f, %.20f)' % (x, y))
 #    opt.plot3d_with_mins(F, [-2, 2], [-1, 3], [[-1.9, 2], [x, y]])
 
-    v = opt.conjugate_gradient_search(F, J, [-10, 15])    
+    v = opt.conjugate_gradient_search(F, J, [-1.9, 2])    
     x = v[0]
     y = v[1]
     print('(%.20f, %.20f)' % (x, y))
