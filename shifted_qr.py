@@ -19,7 +19,7 @@ def shifted_qr(A, max_iter, tol):
             Q, R = np.linalg.qr(A - s * I)
             A = R * Q + s * I
             k += 1
-        
+
         # Check if we need to extract complex values.
         if k == max_iter and np.linalg.norm(A[n - 1, :-1]) > tol:
             # Need to find complex eigens
@@ -35,8 +35,7 @@ def shifted_qr(A, max_iter, tol):
 
     # Return all the eigenvalues.
     return eigenvalues
-
-
+    
 if __name__ == "__main__":
     A = np.matrix([[3., -1., -2.],
                    [3., 2., -3.],
